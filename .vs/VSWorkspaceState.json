@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\src",
+    "\\src\\app"
   ],
-  "SelectedNode": "\\public",
+  "SelectedNode": "\\src\\app\\main.py",
   "PreviewInSolutionExplorer": false
 }
