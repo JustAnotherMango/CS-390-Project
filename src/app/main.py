@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 
 db_config = {
     'host': 'localhost',
-    'user': 'myuser',  # Replace with your MySQL username
-    'password': 'mypassword',  # Replace with your MySQL password
-    'database': 'my_api'
+    'user': 'root',  # Replace with your MySQL username
+    'password': 'root',  # Replace with your MySQL password
+    'database': 'trades_db'
 }
 
 def get_db_connection():
@@ -77,7 +77,7 @@ def get_users():
 @app.route('/Politicians')
 def get_politicians():
     try:
-        return jsonify(fetch_all_from_table('Politicians'))
+        return jsonify(fetch_all_from_table('politician_trades'))
     except Exception as e:
         logger.error(f"Error in /Politicians endpoint: {e}")
         return jsonify({"error": str(e)}), 500
