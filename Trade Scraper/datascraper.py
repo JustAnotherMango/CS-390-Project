@@ -4,13 +4,38 @@ from selenium.webdriver.chrome.options import Options
 import time
 import mysql.connector
 from collections import defaultdict
+from datetime import datetime
 
-def scrape_politician_page(politician_url, max_pages=10):
+DATE_FORMAT = "%d %b %Y"
+
+def get_max_trade_date_from_db():
+    try:
+        cnx = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="root",
+            database="trades_db",
+            connection_timeout=5
+        )
+        cursor = cnx.cursor(dictionary=True)
+        cursor.execute("SELECT MAX(STR_TO_DATE(trade_date, '%d %b %Y')) AS max_date FROM politician_trades")
+        result = cursor.fetchone()
+        cursor.close()
+        cnx.close()
+        if result["max_date"]:
+            return result["max_date"]
+        else:
+            return None
+    except Exception as e:
+        print("Error getting max trade date from DB:", e, flush=True)
+        return None
+
+def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_existing_date=None):
     chrome_options = Options()
-    # chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless")
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(politician_url)
-    time.sleep(3)
+    time.sleep(1)
     try:
         politician_name = driver.find_element(By.CSS_SELECTOR, "article.politician-detail-card h1").text
     except Exception as e:
@@ -24,7 +49,7 @@ def scrape_politician_page(politician_url, max_pages=10):
         page_url = politician_url if page == 1 else f"{politician_url}?page={page}"
         print(f"Scraping page {page}: {page_url}", flush=True)
         driver.get(page_url)
-        time.sleep(3)
+        time.sleep(1)
         try:
             table = driver.find_element(By.CSS_SELECTOR, "table.w-full")
         except Exception as e:
@@ -40,6 +65,7 @@ def scrape_politician_page(politician_url, max_pages=10):
         for row in rows:
             trade_text = row.text
             fields = trade_text.split("\n")
+            # Skip header row if present.
             if fields and fields[0].strip().upper() == "TRADED ISSUER":
                 continue
             if len(fields) >= 9:
@@ -50,7 +76,25 @@ def scrape_politician_page(politician_url, max_pages=10):
                 gap_unit = fields[6] if len(fields) >= 7 else ""
                 gap = fields[7] if len(fields) >= 8 else ""
                 trade_type = fields[8] if len(fields) >= 9 else ""
-                trade_size = fields[9] if len(fields) >= 10 else ""
+                trade_size = fields[9].replace('\u2013', '-') if len(fields) >= 10 else ""
+                
+
+                DATE_FORMAT = "%d %b %Y" 
+
+                if update_mode and max_existing_date:
+                    try:
+                        trade_date_dt = datetime.strptime(trade_date, DATE_FORMAT)
+                        if trade_date_dt.date() <= max_existing_date:
+                            print(
+                                f"Encountered trade_date {trade_date} <= DB max date {max_existing_date} for {politician_name}. Stopping scraping for this politician.",
+                                flush=True,
+                            )
+                            driver.quit()
+                            return trades
+                    except Exception as e:
+                        print(f"Error parsing trade_date '{trade_date}': {e}", flush=True)
+
+                
                 trades.append({
                     "politician": politician_name,
                     "traded_issuer": traded_issuer,
@@ -65,7 +109,7 @@ def scrape_politician_page(politician_url, max_pages=10):
                 })
                 valid_count += 1
             else:
-                pass
+                print("Row has fewer than 9 fields; skipping.", flush=True)
 
         print(f"Valid trades found on page {page}: {valid_count}", flush=True)
         if valid_count == 0:
@@ -76,7 +120,7 @@ def scrape_politician_page(politician_url, max_pages=10):
     return trades
 
 def insert_trades_into_db(trades):
-    print("Starting insertion process...", flush=True)
+    print("Starting initial insertion process...", flush=True)
     try:
         cnx = mysql.connector.connect(
             host="localhost",
@@ -122,7 +166,7 @@ def insert_trades_into_db(trades):
             print(f"Error inserting record {idx}: {e}", flush=True)
             cnx.rollback()
 
-    print(f"Inserted {inserted_count} rows into the database out of {total_trades} attempts.", flush=True)
+    print(f"Inserted {inserted_count} rows out of {total_trades} attempts.", flush=True)
     trade_counts = defaultdict(int)
     for trade in trades:
         trade_counts[trade["politician"]] += 1
@@ -132,7 +176,60 @@ def insert_trades_into_db(trades):
 
     cursor.close()
     cnx.close()
-    print("Insertion process finished.", flush=True)
+    print("Initial insertion process finished.", flush=True)
+
+def update_trades_into_db(trades):
+    print("Starting update insertion process...", flush=True)
+    try:
+        cnx = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="root",
+            database="trades_db",
+            connection_timeout=5
+        )
+        print("DB connection established for update.", flush=True)
+    except Exception as e:
+        print("Error connecting to DB for update:", e, flush=True)
+        return
+
+    cursor = cnx.cursor()
+    insert_query = """
+    INSERT INTO politician_trades (
+        politician, traded_issuer, ticker, published_date, trade_date,
+        gap_unit, gap, trade_type, trade_size, page
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    total_new = len(trades)
+    print(f"Preparing to insert {total_new} new trades into the DB...", flush=True)
+    inserted_count = 0
+
+    for idx, trade in enumerate(trades, start=1):
+        values = (
+            trade["politician"],
+            trade["traded_issuer"],
+            trade["ticker"],
+            trade["published_date"],
+            trade["trade_date"],
+            trade["gap_unit"],
+            trade["gap"],
+            trade["trade_type"],
+            trade["trade_size"],
+            trade["page"]
+        )
+        try:
+            cursor.execute(insert_query, values)
+            cnx.commit()
+            inserted_count += 1
+            print(f"Updated record {idx}/{total_new} inserted successfully.", flush=True)
+        except Exception as e:
+            print(f"Error inserting updated record {idx}: {e}", flush=True)
+            cnx.rollback()
+
+    print(f"Updated {inserted_count} rows out of {total_new} attempts.", flush=True)
+    cursor.close()
+    cnx.close()
+    print("Update insertion process finished.", flush=True)
 
 def test_db_connection():
     print("Testing DB connection...", flush=True)
@@ -149,14 +246,52 @@ def test_db_connection():
     except Exception as e:
         print("Error in DB connection test:", e, flush=True)
 
-if __name__ == "__main__":
+def run_operation():
+    print("\nChoose an operation:")
+    print("1: Full Insert (populate DB with all scraped trades)")
+    print("2: Update (insert only new trades)")
+    choice = input("Enter 1 or 2 (or 'q' to quit): ").strip()
+    
+    if choice.lower() == 'q':
+        print("Exiting.")
+        return False
+
+    update_mode = (choice == "2")
+    max_existing_date = None
+
+    if update_mode:
+        max_existing_date = get_max_trade_date_from_db()
+        if max_existing_date:
+            print(f"DB maximum trade_date: {max_existing_date}", flush=True)
+        else:
+            print("No existing trade dates found in DB; will insert all trades.", flush=True)
+
     politician_urls = [
         "https://www.capitoltrades.com/politicians/P000197",
         "https://www.capitoltrades.com/politicians/D000617"
     ]
     all_trades = []
     for url in politician_urls:
-        trades = scrape_politician_page(url, max_pages=10)
+        trades = scrape_politician_page(url, max_pages=10, update_mode=update_mode, max_existing_date=max_existing_date)
         all_trades.extend(trades)
-    print("Final list of all trades:", all_trades, flush=True)
-    insert_trades_into_db(all_trades)
+    print("Final list of scraped trades:", all_trades, flush=True)
+
+    if choice == "1":
+        insert_trades_into_db(all_trades)
+    elif choice == "2":
+        update_trades_into_db(all_trades)
+    else:
+        print("Invalid choice. Exiting.", flush=True)
+        return False
+
+    return True
+
+if __name__ == "__main__":
+    while True:
+        should_continue = run_operation()
+        if not should_continue:
+            break
+        again = input("\nDo you want to perform another operation? (y/n): ").strip().lower()
+        if again != 'y':
+            print("Exiting program.")
+            break
