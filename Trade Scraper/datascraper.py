@@ -38,10 +38,16 @@ def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_
     time.sleep(1)
     try:
         politician_name = driver.find_element(By.CSS_SELECTOR, "article.politician-detail-card h1").text
+        party = driver.find_element(By.CSS_SELECTOR, "span.q-field.party").text
+        chamber = driver.find_element(By.CSS_SELECTOR, "span.q-field.chamber").text
+        state = driver.find_element(By.CSS_SELECTOR, "span.q-field.us-state-full").text
+        details = driver.find_element(By.CSS_SELECTOR, "article.politician-detail-card h2").text.split()
     except Exception as e:
-        print("Error extracting politician name:", e, flush=True)
-        politician_name = "Unknown Politician"
-    print(f"Scraping trades for: {politician_name}", flush=True)
+        print("Error extracting politician details:", e, flush=True)
+        politician_name, party, chamber, state = "Unknown Politician", "Unknown", "Unknown", "Unknown"
+
+
+    print(f"Scraping trades for: {politician_name} ({party}, {chamber}, {state})", flush=True)
     
     trades = []
     page = 1
@@ -57,7 +63,7 @@ def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_
             break
 
         rows = table.find_elements(By.TAG_NAME, "tr")
-        if not rows or len(rows) == 0:
+        if not rows:
             print(f"No rows found on page {page}. Ending pagination.", flush=True)
             break
 
@@ -65,22 +71,20 @@ def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_
         for row in rows:
             trade_text = row.text
             fields = trade_text.split("\n")
-            # Skip header row if present.
             if fields and fields[0].strip().upper() == "TRADED ISSUER":
                 continue
             if len(fields) >= 9:
                 traded_issuer = fields[0]
                 ticker = fields[1]
-                published_date = f"{fields[2]} {fields[3]}" if len(fields) >= 4 else ""
-                trade_date = f"{fields[4]} {fields[5]}" if len(fields) >= 6 else ""
-                gap_unit = fields[6] if len(fields) >= 7 else ""
-                gap = fields[7] if len(fields) >= 8 else ""
-                trade_type = fields[8] if len(fields) >= 9 else ""
-                trade_size = fields[9].replace('\u2013', '-') if len(fields) >= 10 else ""
-                
+                published_date = f"{fields[2]} {fields[3]}"
+                trade_date = f"{fields[4]} {fields[5]}"
+                gap_unit = fields[6]
+                gap = fields[7]
+                trade_type = fields[8]
+                trade_size = fields[9].replace('\u2013', '-').replace('\u2014', '-').replace('\u2212', '-') if len(fields) > 9 else "N/A"
 
-                DATE_FORMAT = "%d %b %Y" 
 
+                DATE_FORMAT = "%d %b %Y"
                 if update_mode and max_existing_date:
                     try:
                         trade_date_dt = datetime.strptime(trade_date, DATE_FORMAT)
@@ -94,9 +98,11 @@ def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_
                     except Exception as e:
                         print(f"Error parsing trade_date '{trade_date}': {e}", flush=True)
 
-                
                 trades.append({
                     "politician": politician_name,
+                    "party": party,
+                    "chamber": chamber,
+                    "state": state,
                     "traded_issuer": traded_issuer,
                     "ticker": ticker,
                     "published_date": published_date,
@@ -109,7 +115,7 @@ def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_
                 })
                 valid_count += 1
             else:
-                print("Row has fewer than 9 fields; skipping.", flush=True)
+                print("Row has fewer than 10 fields; skipping.", flush=True)
 
         print(f"Valid trades found on page {page}: {valid_count}", flush=True)
         if valid_count == 0:
@@ -118,6 +124,7 @@ def scrape_politician_page(politician_url, max_pages=10, update_mode=False, max_
         page += 1
     driver.quit()
     return trades
+
 
 def insert_trades_into_db(trades):
     print("Starting initial insertion process...", flush=True)
@@ -137,10 +144,10 @@ def insert_trades_into_db(trades):
     cursor = cnx.cursor()
     insert_query = """
     INSERT INTO politician_trades (
-        politician, traded_issuer, ticker, published_date, trade_date,
-        gap_unit, gap, trade_type, trade_size, page
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """
+        politician, party, chamber, state, traded_issuer, ticker, published_date,
+        trade_date, gap_unit, gap, trade_type, trade_size, page
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+
     total_trades = len(trades)
     print(f"Preparing to insert {total_trades} trades into the DB...", flush=True)
     inserted_count = 0
@@ -148,6 +155,9 @@ def insert_trades_into_db(trades):
     for idx, trade in enumerate(trades, start=1):
         values = (
             trade["politician"],
+            trade["party"],
+            trade["chamber"],
+            trade["state"],
             trade["traded_issuer"],
             trade["ticker"],
             trade["published_date"],
@@ -196,10 +206,10 @@ def update_trades_into_db(trades):
     cursor = cnx.cursor()
     insert_query = """
     INSERT INTO politician_trades (
-        politician, traded_issuer, ticker, published_date, trade_date,
-        gap_unit, gap, trade_type, trade_size, page
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    """
+        politician, party, chamber, state, traded_issuer, ticker, published_date,
+        trade_date, gap_unit, gap, trade_type, trade_size, page
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+
     total_new = len(trades)
     print(f"Preparing to insert {total_new} new trades into the DB...", flush=True)
     inserted_count = 0
@@ -207,6 +217,9 @@ def update_trades_into_db(trades):
     for idx, trade in enumerate(trades, start=1):
         values = (
             trade["politician"],
+            trade["party"],
+            trade["chamber"],
+            trade["state"],
             trade["traded_issuer"],
             trade["ticker"],
             trade["published_date"],
@@ -230,6 +243,7 @@ def update_trades_into_db(trades):
     cursor.close()
     cnx.close()
     print("Update insertion process finished.", flush=True)
+
 
 def test_db_connection():
     print("Testing DB connection...", flush=True)
