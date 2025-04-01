@@ -76,11 +76,14 @@ def get_users():
 
 @app.route('/Politicians')
 def get_politicians():
-    try:
-        return jsonify(fetch_all_from_table('politician_trades'))
-    except Exception as e:
-        logger.error(f"Error in /Politicians endpoint: {e}")
-        return jsonify({"error": str(e)}), 500
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM politician_trades")
+    trades = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify({"trades": trades})
+
 
 @app.route('/StockMarketData')
 def get_stock_market_data():

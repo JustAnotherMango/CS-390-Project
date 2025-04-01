@@ -282,7 +282,8 @@ def run_operation():
 
     politician_urls = [
         "https://www.capitoltrades.com/politicians/P000197",
-        "https://www.capitoltrades.com/politicians/D000617"
+        "https://www.capitoltrades.com/politicians/D000617",
+        "https://www.capitoltrades.com/politicians/M000355"
     ]
     all_trades = []
     for url in politician_urls:
