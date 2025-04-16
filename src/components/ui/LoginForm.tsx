@@ -9,7 +9,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/login', {
+    const res = await fetch('http://localhost:5000/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ export default function LoginPage() {
     const data = await res.json();
     if (res.ok) {
       setMessage('Login successful!');
-      // Redirect or set cookie/token here
+      window.location.href = '/dashboard';
     } else {
       setMessage(data.message || 'Login failed');
     }

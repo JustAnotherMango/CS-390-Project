@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
 import logging
@@ -170,6 +170,34 @@ def get_confidence():
     except Exception as e:
         logger.error(f"Error in /Confidence endpoint: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({"error": "Username and password are required"}), 400
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if user and user['password'] == password:
+            return jsonify({"message": "Login successful", "user_id": user['id']}), 200
+        else:
+            return jsonify({"message": "Invalid username or password"}), 401
+        
+    except Exception as e:
+        logger.error(f"Error in /login endpoint: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     logger.info("Starting Flask application...")

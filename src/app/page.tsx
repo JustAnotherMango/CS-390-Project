@@ -6,12 +6,14 @@ export default function Home() {
 
       <header className="sticky top-0 border-b-2 border-green-600 bg-gray-950 p-5 text-white">
         <nav className="flex justify-between items-center max-w-screen">
-          <div className="text-2xl font-semibold font-serif">Politrade</div>
+          <div className="text-2xl font-semibold font-serif">
+            <a href="/">Politrade</a>
+          </div>
           <ul className="flex space-x-8">
             <li><a href="/dashboard" className="hover:text-green-600">Politicians</a></li>
             <li><a href="#about" className="hover:text-green-600">About</a></li>
             <li><a href="#contact" className="hover:text-green-600">Contact</a></li>
-            <li><a href="#signin" className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700">Sign In</a></li>
+            <li><a href="/login" className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700">Sign In</a></li>
           </ul>
         </nav>
       </header>
