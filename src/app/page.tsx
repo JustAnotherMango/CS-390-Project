@@ -1,6 +1,32 @@
-import type React from "react"
+"use client";
+import type React from "react";
+import {useEffect, useState} from 'react';
 
 export default function Home() {
+  const [user, setUser] = useState<{username: string} | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/me', {
+          credentials: 'include',
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setUser({username: data.username});
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
 
@@ -13,8 +39,40 @@ export default function Home() {
             <li><a href="/dashboard" className="hover:text-green-600">Politicians</a></li>
             <li><a href="#about" className="hover:text-green-600">About</a></li>
             <li><a href="#contact" className="hover:text-green-600">Contact</a></li>
-            <li><a href="/login" className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700">Sign In</a></li>
-          </ul>
+            {user ? (
+              <li className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-700 hover:cursor-pointer">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('http://localhost:5000/logout', {
+                          method: 'POST',
+                          credentials: 'include',
+                        });
+                        if (res.ok) {
+                          setUser(null);
+                        } else {
+                          console.error("Logout failed");
+                        }
+                      } catch (err) {
+                        console.error("Logout error:", err);
+                      }
+                    }}
+                    //className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-500 hover:bg-gray-700"
+                  >
+                    {user.username} (Logout)
+                  </button>
+              </li>
+            ) : (
+              <li>
+                <a
+                  href="/login"
+                  className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
+                >
+                  Sign In
+                </a>
+              </li>
+            )}          
+            </ul>
         </nav>
       </header>
 
