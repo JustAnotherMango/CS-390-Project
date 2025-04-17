@@ -1,5 +1,4 @@
 import React from 'react';
-import PoliticianSearch from '../../components/ui/PoliticianSearch';
 
 export default function Home() {
   return (
@@ -8,11 +7,26 @@ export default function Home() {
         <nav className="flex justify-between items-center">
           <div className="text-2xl font-semibold font-serif">Politrade</div>
           <ul className="flex space-x-8">
-            <li><a href="#politicians" className="hover:text-green-600">Politicians</a></li>
-            <li><a href="#about" className="hover:text-green-600">About</a></li>
-            <li><a href="#contact" className="hover:text-green-600">Contact</a></li>
             <li>
-              <a href="#signin" className="p-2 px-4 rounded-lg border hover:border-green-600 hover:text-green-600 hover:bg-gray-700">
+              <a href="#politicians" className="hover:text-green-600">
+                Politicians
+              </a>
+            </li>
+            <li>
+              <a href="#about" className="hover:text-green-600">
+                About
+              </a>
+            </li>
+            <li>
+              <a href="#contact" className="hover:text-green-600">
+                Contact
+              </a>
+            </li>
+            <li>
+              <a
+                href="#signin"
+                className="p-2 px-4 rounded-lg border hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
+              >
                 Sign In
               </a>
             </li>
@@ -21,7 +35,7 @@ export default function Home() {
       </header>
 
       <main className="flex-grow container mx-auto p-6">
-        <PoliticianSearch />
+        {/* Main content removed. */}
       </main>
 
       <footer className="bg-gray-950 text-white py-6 text-center">
