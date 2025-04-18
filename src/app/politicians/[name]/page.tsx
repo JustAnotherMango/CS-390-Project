@@ -16,13 +16,12 @@ type Trade = {
   trade_date: string
   published_date: string
   gap: string
-  avg_roi: string | null
+  avg_roi: number | null
 }
 
 export default function PoliticianDetail() {
   const params = useParams()
   const rawName = params.name
-  // params.name may be string or string[], so pick the first if it's an array
   const name =
     typeof rawName === "string"
       ? decodeURIComponent(rawName)
@@ -41,7 +40,7 @@ export default function PoliticianDetail() {
   // sort input
   const [sortOption, setSortOption] = useState("dateDesc")
 
-  // format numbers to k/m
+  // helper: format numbers to k/m
   const formatAmount = (val: number | null): string => {
     if (val == null) return "N/A"
     if (val >= 1_000_000) {
@@ -55,7 +54,7 @@ export default function PoliticianDetail() {
     return val.toString()
   }
 
-  // fetch data
+  // fetch + normalize data
   useEffect(() => {
     if (!name) return
     fetch("http://localhost:5000/Politicians")
@@ -64,8 +63,15 @@ export default function PoliticianDetail() {
         return r.json()
       })
       .then((json) => {
-        const all: Trade[] = json.trades
-        setTrades(all.filter((t) => t.politician === name))
+        const all: Trade[] = (json.trades as any[])
+          .map((t) => ({
+            ...t,
+            min_purchase_price: t.min_purchase_price ? Number(t.min_purchase_price) : null,
+            max_purchase_price: t.max_purchase_price ? Number(t.max_purchase_price) : null,
+            avg_roi: t.avg_roi != null ? Number(t.avg_roi) : null,
+          }))
+          .filter((t) => t.politician === name)
+        setTrades(all)
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
@@ -100,7 +106,7 @@ export default function PoliticianDetail() {
     [trades, filterType, filterTicker, searchIssuer]
   )
 
-  // sort filtered
+  // sort filtered list
   const sortedTrades = useMemo(() => {
     const arr = [...filtered]
     switch (sortOption) {
@@ -131,19 +137,14 @@ export default function PoliticianDetail() {
     }
   }, [filtered, sortOption])
 
-  if (loading) {
-    return <p className="text-center text-white mt-8">Loading…</p>
-  }
-  if (error) {
-    return <p className="text-center text-red-500 mt-8">{error}</p>
-  }
-  if (!trades.length) {
+  if (loading) return <p className="text-center text-white mt-8">Loading…</p>
+  if (error) return <p className="text-center text-red-500 mt-8">{error}</p>
+  if (!trades.length)
     return (
       <p className="text-center text-white mt-8">
         No trades found for {name}
       </p>
     )
-  }
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -159,9 +160,9 @@ export default function PoliticianDetail() {
         <h1 className="text-3xl font-bold text-white">{name}’s Trades</h1>
       </div>
 
-      {/* Filters + Sort (aligned to header grid) */}
+      {/* Filters + Sort */}
       <div className="grid grid-cols-7 gap-4 mb-4">
-        {/* Issuer search spans 4 columns */}
+        {/* Search issuer (now 3/7 width) */}
         <div className="col-span-3">
           <input
             type="text"
@@ -171,7 +172,7 @@ export default function PoliticianDetail() {
             className="w-full p-2 rounded bg-gray-800 text-white placeholder-gray-400"
           />
         </div>
-        {/* Type filter */}
+        {/* Trade type */}
         <div>
           <select
             value={filterType}
@@ -185,7 +186,7 @@ export default function PoliticianDetail() {
             ))}
           </select>
         </div>
-        {/* Ticker filter */}
+        {/* Ticker */}
         <div>
           <select
             value={filterTicker}
@@ -199,17 +200,17 @@ export default function PoliticianDetail() {
             ))}
           </select>
         </div>
-        {/* Sort dropdown */}
+        {/* Sort options (2/7 width) */}
         <div className="col-span-2">
           <select
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
             className="w-full p-2 rounded bg-gray-800 text-white"
           >
-            <option value="dateDesc">Date: newest to oldest</option>
-            <option value="dateAsc">Date: oldest to newest</option>
-            <option value="sizeDesc">Size: large to small</option>
-            <option value="sizeAsc">Size: small to large</option>
+            <option value="dateDesc">Date: newest → oldest</option>
+            <option value="dateAsc">Date: oldest → newest</option>
+            <option value="sizeDesc">Size: large → small</option>
+            <option value="sizeAsc">Size: small → large</option>
           </select>
         </div>
       </div>
@@ -245,9 +246,7 @@ export default function PoliticianDetail() {
             <div>{t.trade_date}</div>
             <div>{t.published_date}</div>
             <div>
-              {t.avg_roi != null
-                ? `${Number(t.avg_roi).toFixed(2)}%`
-                : "N/A"}
+              {t.avg_roi != null ? `${t.avg_roi.toFixed(2)}%` : "N/A"}
             </div>
           </div>
         ))}
