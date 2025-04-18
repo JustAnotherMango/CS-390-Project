@@ -21,7 +21,7 @@ export default function LoginPage() {
     const data = await res.json();
     if (res.ok) {
       setMessage('Login successful!');
-      window.location.href = '/dashboard';
+      window.location.href = '/politicians';
     } else {
       setMessage(data.message || 'Login failed');
     }

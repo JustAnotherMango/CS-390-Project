@@ -45,51 +45,24 @@ export default function Home() {
         </button>
       </section>
 
-      <header className="sticky top-0 border-b-2 border-green-600 bg-gray-950 p-5 text-white">
-        <nav className="flex justify-between items-center max-w-screen">
-          <div className="text-2xl font-semibold font-serif">
-            <a href="/">Politrade</a>
+      <section id="about" className="py-16">
+        <div className="flex flex-col md:flex-row items-center justify-center text-center space-y-8 md:space-y-0 md:space-x-8">
+          <div>
+            <h2 className="text-4xl text-white font-semibold font-serif">
+              About Politrade
+            </h2>
+            <p className="mt-4 text-white max-w-md">
+              Politrade is a web-application focused on pulling stock market trades 
+              made by politicians and storing them for the public to see.
+            </p>
           </div>
-          <ul className="flex space-x-8">
-            <li><a href="/dashboard" className="hover:text-green-600">Politicians</a></li>
-            <li><a href="#about" className="hover:text-green-600">About</a></li>
-            <li><a href="#contact" className="hover:text-green-600">Contact</a></li>
-            {user ? (
-              <li className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-700 hover:cursor-pointer">
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch('http://localhost:5000/logout', {
-                          method: 'POST',
-                          credentials: 'include',
-                        });
-                        if (res.ok) {
-                          setUser(null);
-                        } else {
-                          console.error("Logout failed");
-                        }
-                      } catch (err) {
-                        console.error("Logout error:", err);
-                      }
-                    }}
-                    //className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-500 hover:bg-gray-700"
-                  >
-                    {user.username} (Logout)
-                  </button>
-              </li>
-            ) : (
-              <li>
-                <a
-                  href="/login"
-                  className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
-                >
-                  Sign In
-                </a>
-              </li>
-            )}          
-            </ul>
-        </nav>
-      </header>
+          <img
+            src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse3.mm.bing.net%2Fth%3Fid%3DOIP.w5Ee58wup7Nw6bc2u_305AHaEK%26pid%3DApi&f=1&ipo=images"
+            alt="stock market image"
+            className="w-72 h-56 object-cover rounded-lg shadow-lg"
+          />
+        </div>
+      </section>
 
       <section className="py-1">
         <hr className="border-gray-500 w-3/4 mx-auto" />

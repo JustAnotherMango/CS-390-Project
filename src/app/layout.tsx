@@ -9,9 +9,11 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Politrade2",
+  title: "Politrade",
   description: "Next up and coming political trading app",
 }
+
+
 
 export default function RootLayout({
   children,
@@ -20,9 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900`}>
         <header className="sticky top-0 border-b-2 border-green-600 bg-gray-950 p-5 text-white z-10">
           <nav className="flex justify-between items-center max-w-screen mx-auto">
             <Link href="/" className="text-2xl font-semibold font-serif">
@@ -46,7 +46,7 @@ export default function RootLayout({
               </li>
               <li>
                 <a
-                  href="#signin"
+                  href="/login"
                   className="p-2 px-4 rounded-lg border hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
                 >
                   Sign In
@@ -56,7 +56,7 @@ export default function RootLayout({
           </nav>
         </header>
 
-        <main className="pt-4">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   )
