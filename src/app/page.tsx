@@ -29,8 +29,10 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
-      <section className="bg-[url(https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmotionarray.imgix.net%2Fpreview-975047-dOAbHCWmyG-high_0010.jpg&f=1&nofb=1&ipt=56233aa82cc3208e58bf18aabbfd6c7c775d17f5fb46c3f844f19e8dc34696a9&ipo=images)] text-white text-center py-24">
-      
+      <section
+        className="bg-[url(https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmotionarray.imgix.net%2Fpreview-975047-dOAbHCWmyG-high_0010.jpg&f=1&nofb=1&ipt=56233aa82cc3208e58bf18aabbfd6c7c775d17f5fb46c3f844f19e8dc34696a9&ipo=images)]
+                   text-white text-center py-24"
+      >
         <h1 className="text-5xl font-extrabold font-serif shadow-lg">
           Check Before You Trade
         </h1>
@@ -41,6 +43,25 @@ export default function Home() {
         <button className="mt-8 border-2 border-white text-white py-3 px-6 rounded-lg text-lg hover:bg-green-600 cursor-pointer">
           Get Started
         </button>
+      </section>
+
+      <section id="about" className="py-16">
+        <div className="flex flex-col md:flex-row items-center justify-center text-center space-y-8 md:space-y-0 md:space-x-8">
+          <div>
+            <h2 className="text-4xl text-white font-semibold font-serif">
+              About Politrade
+            </h2>
+            <p className="mt-4 text-white max-w-md">
+              Politrade is a web-application focused on pulling stock market trades 
+              made by politicians and storing them for the public to see.
+            </p>
+          </div>
+          <img
+            src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftse3.mm.bing.net%2Fth%3Fid%3DOIP.w5Ee58wup7Nw6bc2u_305AHaEK%26pid%3DApi&f=1&ipo=images"
+            alt="stock market image"
+            className="w-72 h-56 object-cover rounded-lg shadow-lg"
+          />
+        </div>
       </section>
 
       <section className="py-1">

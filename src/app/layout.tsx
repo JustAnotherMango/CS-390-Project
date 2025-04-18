@@ -46,7 +46,7 @@ export default function RootLayout({
               </li>
               <li>
                 <a
-                  href="#signin"
+                  href="/login"
                   className="p-2 px-4 rounded-lg border hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
                 >
                   Sign In
