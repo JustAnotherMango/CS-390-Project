@@ -462,7 +462,9 @@ def run_operation():
             print(f"Skipping trades older than {cutoff}")
         urls = [
             "https://www.capitoltrades.com/politicians/P000197",
-            "https://www.capitoltrades.com/politicians/D000617"
+            "https://www.capitoltrades.com/politicians/D000617",
+            "https://www.capitoltrades.com/politicians/G000596",
+            "https://www.capitoltrades.com/politicians/D000624"
         ]
         all_trades = []
         for u in urls:

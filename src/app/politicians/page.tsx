@@ -33,7 +33,7 @@ export default function PoliticiansList() {
         return res.json()
       })
       .then((json) => {
-        // dedupe by politician name, preserving image/party/etc
+        // dedupe by politician name
         const map = new Map<string, PoliticianSummary>()
         ;(json.trades as Trade[]).forEach((t) => {
           if (!map.has(t.politician)) {
@@ -54,36 +54,24 @@ export default function PoliticiansList() {
 
   // derive unique filter options
   const parties = useMemo(
-    () => ["All", ...Array.from(new Set(data.map((t) => t.party)))],
+    () => ["All", ...new Set(data.map((t) => t.party))],
     [data]
   )
   const chambers = useMemo(
-    () => ["All", ...Array.from(new Set(data.map((t) => t.chamber)))],
+    () => ["All", ...new Set(data.map((t) => t.chamber))],
     [data]
   )
   const states = useMemo(
-    () => ["All", ...Array.from(new Set(data.map((t) => t.state)))],
+    () => ["All", ...new Set(data.map((t) => t.state))],
     [data]
   )
 
   // filtered list
   const filtered = useMemo(() => {
     return data.filter((t) => {
-      if (
-        filterParty !== "All" &&
-        t.party.toLowerCase() !== filterParty.toLowerCase()
-      )
-        return false
-      if (
-        filterChamber !== "All" &&
-        t.chamber.toLowerCase() !== filterChamber.toLowerCase()
-      )
-        return false
-      if (
-        filterState !== "All" &&
-        t.state.toLowerCase() !== filterState.toLowerCase()
-      )
-        return false
+      if (filterParty !== "All" && t.party !== filterParty) return false
+      if (filterChamber !== "All" && t.chamber !== filterChamber) return false
+      if (filterState !== "All" && t.state !== filterState) return false
       if (
         searchTerm &&
         !t.politician.toLowerCase().includes(searchTerm.toLowerCase())
@@ -143,14 +131,14 @@ export default function PoliticiansList() {
       </div>
 
       {/* Cards */}
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-stretch">
         {filtered.map((p) => (
           <Link
             key={p.politician}
             href={`/politicians/${encodeURIComponent(p.politician)}`}
           >
             <Card
-              className={`p-4 cursor-pointer flex items-center justify-between ${
+              className={`h-full p-4 cursor-pointer flex flex-row items-center space-x-4 ${
                 p.party === "Democrat"
                   ? "bg-blue-800 text-white"
                   : p.party === "Republican"
@@ -158,16 +146,18 @@ export default function PoliticiansList() {
                   : "bg-gray-800 text-white"
               }`}
             >
-              <div>
+              <div className="flex-1">
                 <h3 className="text-xl font-semibold">{p.politician}</h3>
                 <p className="text-sm">State: {p.state}</p>
                 <p className="text-sm">Chamber: {p.chamber}</p>
               </div>
-              <img
-                src={p.image}
-                alt={p.politician}
-                className="w-16 h-16 rounded-full object-cover ml-4"
-              />
+              <div className="flex-shrink-0">
+                <img
+                  src={p.image}
+                  alt={p.politician}
+                  className="w-20 h-20 rounded-full object-cover"
+                />
+              </div>
             </Card>
           </Link>
         ))}
