@@ -29,10 +29,8 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
-      <section
-        className="bg-[url(https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmotionarray.imgix.net%2Fpreview-975047-dOAbHCWmyG-high_0010.jpg&f=1&nofb=1&ipt=56233aa82cc3208e58bf18aabbfd6c7c775d17f5fb46c3f844f19e8dc34696a9&ipo=images)]
-                   text-white text-center py-24"
-      >
+      <section className="bg-[url(https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmotionarray.imgix.net%2Fpreview-975047-dOAbHCWmyG-high_0010.jpg&f=1&nofb=1&ipt=56233aa82cc3208e58bf18aabbfd6c7c775d17f5fb46c3f844f19e8dc34696a9&ipo=images)] text-white text-center py-24">
+      
         <h1 className="text-5xl font-extrabold font-serif shadow-lg">
           Check Before You Trade
         </h1>
@@ -44,52 +42,6 @@ export default function Home() {
           Get Started
         </button>
       </section>
-
-      <header className="sticky top-0 border-b-2 border-green-600 bg-gray-950 p-5 text-white">
-        <nav className="flex justify-between items-center max-w-screen">
-          <div className="text-2xl font-semibold font-serif">
-            <a href="/">Politrade</a>
-          </div>
-          <ul className="flex space-x-8">
-            <li><a href="/dashboard" className="hover:text-green-600">Politicians</a></li>
-            <li><a href="#about" className="hover:text-green-600">About</a></li>
-            <li><a href="#contact" className="hover:text-green-600">Contact</a></li>
-            {user ? (
-              <li className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-700 hover:cursor-pointer">
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch('http://localhost:5000/logout', {
-                          method: 'POST',
-                          credentials: 'include',
-                        });
-                        if (res.ok) {
-                          setUser(null);
-                        } else {
-                          console.error("Logout failed");
-                        }
-                      } catch (err) {
-                        console.error("Logout error:", err);
-                      }
-                    }}
-                    //className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-500 hover:bg-gray-700"
-                  >
-                    {user.username} (Logout)
-                  </button>
-              </li>
-            ) : (
-              <li>
-                <a
-                  href="/login"
-                  className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
-                >
-                  Sign In
-                </a>
-              </li>
-            )}          
-            </ul>
-        </nav>
-      </header>
 
       <section className="py-1">
         <hr className="border-gray-500 w-3/4 mx-auto" />
