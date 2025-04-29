@@ -51,7 +51,9 @@ export default function LoginPage() {
           <p>{message}</p>
           <div className="flex pt-2">
             <p className="text-white pr-1">Don't have an account?</p>
-            <p className="text-white cursor-pointer hover:text-green-600 pb-3 underline">Register</p>
+            <a href="/registration">
+              <p className="text-white cursor-pointer hover:text-green-600 pb-3 underline">Register</p>
+            </a>
           </div>
         </form>
   );

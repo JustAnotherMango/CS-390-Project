@@ -3,29 +3,6 @@ import type React from "react";
 import {useEffect, useState} from 'react';
 
 export default function Home() {
-  const [user, setUser] = useState<{username: string} | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/me', {
-          credentials: 'include',
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser({username: data.username});
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-        setUser(null);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
@@ -40,9 +17,11 @@ export default function Home() {
           We run trades through our neural network to let you know if a trade is
           likely to succeed or not.
         </p>
-        <button className="mt-8 border-2 border-white text-white py-3 px-6 rounded-lg text-lg hover:bg-green-600 cursor-pointer">
-          Get Started
-        </button>
+        <a href="/login">
+          <button className="mt-8 border-2 border-white text-white py-3 px-6 rounded-lg text-lg hover:bg-green-600 cursor-pointer">
+            Get Started
+          </button>
+        </a>
       </section>
 
       <section id="about" className="py-16">
@@ -117,9 +96,11 @@ export default function Home() {
           <p className="mt-4 text-white">
             Create an account and get started with us today.
           </p>
-          <button className="mt-8 border-2 border-white text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 hover:text-green-600 hover:border-green-600 cursor-pointer">
-            Sign Up
-          </button>
+          <a href="/registration">
+            <button className="mt-8 border-2 border-white text-white py-3 px-6 rounded-lg text-lg hover:bg-gray-700 hover:text-green-600 hover:border-green-600 cursor-pointer">
+              Sign Up
+            </button>
+          </a>
         </div>
       </section>
 

@@ -242,7 +242,58 @@ def me():
 
     return jsonify({"username": payload.get("sub")})
 
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    email = data.get('email')
+
+    if not username or not email or not password:
+        return jsonify({'message': 'All fields are required.'}), 400
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Check if user already exists
+        cursor.execute("SELECT * FROM Users WHERE username = %s OR email = %s", (username, email))
+        existing_user = cursor.fetchone()
+        
+        if existing_user:
+            return jsonify({'message': 'Username or email already exists.'}), 400
+        
+        # Insert new user
+        cursor.execute(
+            "INSERT INTO Users (username, email, password) VALUES (%s, %s, %s)",
+            (username, email, password)
+        )
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+
+        token = create_access_token({"sub": username})
+        response = make_response(jsonify({"message": "User registered successfully"}))
+        response.set_cookie(
+            "access_token",
+            token,
+            httponly=True,
+            secure=False,  # ❗ Must be False on localhost
+            samesite="Lax",
+            max_age=60 * 60 * 24,
+            path="/"
+        )
+        return response
+    
+    except Exception as e:
+        logger.error(f"Error during registration: {e}")
+        return jsonify({'message': 'Internal server error'}), 500
+    
+    except Exception as e:
+        logger.error(f"Error during registration: {e}")
+        return jsonify({'message': 'Internal server error'}), 500
+
 if __name__ == '__main__':
     logger.info("Starting Flask application...")
     app.run(debug=True)
-
