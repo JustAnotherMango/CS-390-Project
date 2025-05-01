@@ -18,7 +18,6 @@ export default function Header() {
     router.push("/")
   }
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -74,7 +73,7 @@ export default function Header() {
                   <User />
                 </button>
                 {menuOpen && (
-                  <div className="absolute right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2 z-50">
+                  <div className="absolute right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2 px-6 z-50">
                     <button
                       onClick={handleLogout}
                       className="flex items-center text-sm hover:text-red-500"
