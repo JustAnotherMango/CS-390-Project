@@ -11,6 +11,7 @@ type Trade = {
   chamber: string
   state: string
   image: string
+  confidence_score: number | null
 }
 
 type PoliticianSummary = Trade
@@ -38,11 +39,12 @@ export default function PoliticiansList() {
         ;(json.trades as Trade[]).forEach((t) => {
           if (!map.has(t.politician)) {
             map.set(t.politician, {
-              politician: t.politician,
-              party: t.party,
-              chamber: t.chamber,
-              state: t.state,
-              image: t.image,
+              politician:       t.politician,
+              party:            t.party,
+              chamber:          t.chamber,
+              state:            t.state,
+              image:            t.image,
+              confidence_score: t.confidence_score
             })
           }
         })
@@ -82,7 +84,7 @@ export default function PoliticiansList() {
   }, [data, filterParty, filterChamber, filterState, searchTerm])
 
   if (loading) return <p className="text-center text-white mt-8">Loading…</p>
-  if (error) return <p className="text-center text-red-500 mt-8">{error}</p>
+  if (error)   return <p className="text-center text-red-500 mt-8">{error}</p>
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -101,9 +103,7 @@ export default function PoliticiansList() {
           className="p-2 rounded bg-gray-800 text-white"
         >
           {parties.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
+            <option key={p} value={p}>{p}</option>
           ))}
         </select>
         <select
@@ -112,9 +112,7 @@ export default function PoliticiansList() {
           className="p-2 rounded bg-gray-800 text-white"
         >
           {chambers.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
         <select
@@ -123,9 +121,7 @@ export default function PoliticiansList() {
           className="p-2 rounded bg-gray-800 text-white"
         >
           {states.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
+            <option key={s} value={s}>{s}</option>
           ))}
         </select>
       </div>
@@ -150,6 +146,12 @@ export default function PoliticiansList() {
                 <h3 className="text-xl font-semibold">{p.politician}</h3>
                 <p className="text-sm">State: {p.state}</p>
                 <p className="text-sm">Chamber: {p.chamber}</p>
+                <p className="text-sm">
+                  Confidence:{" "}
+                  {p.confidence_score != null
+                    ? `${(p.confidence_score * 100).toFixed(2)}%`
+                    : "N/A"}
+                </p>
               </div>
               <div className="flex-shrink-0">
                 <img

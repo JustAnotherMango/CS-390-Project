@@ -80,13 +80,26 @@ def get_users():
 
 @app.route('/Politicians')
 def get_politicians():
-    conn = get_db_connection()
+    conn   = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM politician_trades")
+
+    cursor.execute("""
+      SELECT
+        p.politician,
+        p.party,
+        p.chamber,
+        p.state,
+        p.image,
+        c.confidence_score
+      FROM politician_trades AS p
+      LEFT JOIN politician_confidence AS c
+        ON p.politician = c.politician
+    """)
     trades = cursor.fetchall()
     cursor.close()
     conn.close()
     return jsonify({"trades": trades})
+
 
 
 @app.route('/StockMarketData')
