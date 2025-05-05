@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
       <section
-        className="bg-[url(https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fmotionarray.imgix.net%2Fpreview-975047-dOAbHCWmyG-high_0010.jpg&f=1&nofb=1&ipt=56233aa82cc3208e58bf18aabbfd6c7c775d17f5fb46c3f844f19e8dc34696a9&ipo=images)]
+        className="bg-[url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fstatic.vecteezy.com%2Fsystem%2Fresources%2Fpreviews%2F017%2F433%2F810%2Foriginal%2Ftrend-line-of-trading-bar-chart-a-stock-market-trend-and-forex-trading-bar-charts-concept-design-for-financial-investment-economic-trends-chart-vector.jpg&f=1&nofb=1&ipt=e06825884141e1228759dfa3eb6c86a6376a546bfcc19414962ff4e07bee668d')]
                    text-white text-center py-24"
       >
         <h1 className="text-5xl font-extrabold font-serif shadow-lg">
