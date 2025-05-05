@@ -34,58 +34,6 @@ export default function AboutPage() {
 
   return (
       <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-          {/* Header */}
-          <header className="sticky top-0 border-b-2 border-green-600 bg-gray-950 p-5 text-white">
-              <nav className="flex justify-between items-center max-w-screen">
-                  <div className="text-2xl font-semibold font-serif">
-                      <Link href="/">Politrade</Link>
-                  </div>
-                  <ul className="flex space-x-8">
-                      <li>
-                          <Link href="/dashboard" className="hover:text-green-600">Politicians</Link>
-                      </li>
-                      <li>
-                          <Link href="/about" className="hover:text-green-600">About</Link>
-                      </li>
-                      <li>
-                          <a href="#contact" className="hover:text-green-600">Contact</a>
-                      </li>
-                      {user ? (
-                          <li className="p-2 pl-4 pr-4 rounded-lg border-1 text-green-500 bg-gray-800 font-medium hover:text-red-700 hover:cursor-pointer">
-                              <button
-                                  onClick={async () => {
-                                      try {
-                                          const res = await fetch("http://localhost:5000/logout", {
-                                              method: "POST",
-                                              credentials: "include",
-                                          });
-                                          if (res.ok) {
-                                              setUser(null);
-                                          } else {
-                                              console.error("Logout failed");
-                                          }
-                                      } catch (err) {
-                                          console.error("Logout error:", err);
-                                      }
-                                  }}
-                              >
-                                  {user.username} (Logout)
-                              </button>
-                          </li>
-                      ) : (
-                          <li>
-                              <Link
-                                  href="/login"
-                                  className="p-2 pl-4 pr-4 rounded-lg border-1 hover:border-green-600 hover:text-green-600 hover:bg-gray-700"
-                              >
-                                  Sign In
-                              </Link>
-                          </li>
-                      )}
-                  </ul>
-              </nav>
-          </header>
-
           {/* About Content */}
           <main className="flex-grow container mx-auto px-6 py-16">
               <h1 className="text-5xl font-bold font-serif text-center mb-12">About Politrade</h1>
