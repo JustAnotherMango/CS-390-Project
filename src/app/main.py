@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from auth import create_access_token, decode_access_token
 import mysql.connector
 import logging
+import bcrypt
 
 load_dotenv()
 
@@ -175,45 +176,7 @@ def get_confidence():
         logger.error(f"Error in /Confidence endpoint: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/login', methods=['POST'])
-def login():
-    try:
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
 
-        if not username or not password:
-            return jsonify({"error": "Username and password are required"}), 400
-        
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
-        user = cursor.fetchone()
-
-        cursor.close()
-        conn.close()
-
-        if user and user['password'] == password:
-            token = create_access_token({"sub": username})
-            response = make_response(jsonify({"message": "Login successful"}))
-            response.set_cookie(
-                "access_token",
-                token,
-                httponly=True,
-                secure=True,
-                samesite="Lax",
-                max_age=60 * 60 * 24,
-                path="/"
-            )
-            return response
-            # return jsonify({"message": "Login successful", "user_id": user['id']}), 200
-        else:
-            return jsonify({"message": "Invalid username or password"}), 401
-        
-    except Exception as e:
-        logger.error(f"Error in /login endpoint: {e}")
-        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -251,7 +214,8 @@ def register():
 
     if not username or not email or not password:
         return jsonify({'message': 'All fields are required.'}), 400
-    
+
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -293,6 +257,49 @@ def register():
     except Exception as e:
         logger.error(f"Error during registration: {e}")
         return jsonify({'message': 'Internal server error'}), 500
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        if not username or not password:
+            return jsonify({"error": "Username and password are required"}), 400
+
+
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+            token = create_access_token({"sub": username})
+            response = make_response(jsonify({"message": "Login successful"}))
+            response.set_cookie(
+                "access_token",
+                token,
+                httponly=True,
+                secure=True,
+                samesite="Lax",
+                max_age=60 * 60 * 24,
+                path="/"
+            )
+            return response
+            # return jsonify({"message": "Login successful", "user_id": user['id']}), 200
+        else:
+            return jsonify({"message": "Invalid username or password"}), 401
+
+    except Exception as e:
+        logger.error(f"Error in /login endpoint: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     logger.info("Starting Flask application...")

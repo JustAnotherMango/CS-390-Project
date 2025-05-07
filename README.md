@@ -93,3 +93,10 @@ These webpage files utilize react, so the top of the file will contain any funct
     b) Visit http://localhost:5000 to view the backend
 
 ## Contributions
+In order to contribute to this repository through pull requests, perform the following:
+
+1. Fork the repo by navigating to the github repo and click the fork button at the top left of the page
+2. Create a new branch, either using github desktop or by using the command `git checkout -b feature-branch`
+3. Commit changes either using github desktop or by using the command `git commit -am 'Add new feature'`
+4. Push the changes to the branch by using github desktop or by using the command `git push origin feature-branch`
+5. Open a pull request on the github repo by clicking "Create Pull Request". Be sure to add a title and description
