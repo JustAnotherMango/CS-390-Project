@@ -1,9 +1,13 @@
 {
   "ExpandedNodes": [
     "",
+    "\\SQLIterations",
     "\\src",
-    "\\src\\app"
+    "\\src\\app",
+    "\\src\\app\\contact",
+    "\\src\\app\\login",
+    "\\src\\components"
   ],
-  "SelectedNode": "\\src\\app\\main.py",
+  "SelectedNode": "\\src\\app\\contact\\page.tsx",
   "PreviewInSolutionExplorer": false
 }
