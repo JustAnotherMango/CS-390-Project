@@ -46,12 +46,12 @@ export default function Header() {
               </li>
             )}
             <li>
-              <a href="#about" className="hover:text-green-600">
+              <a href="/about" className="hover:text-green-600">
                 About
               </a>
             </li>
             <li>
-              <a href="#contact" className="hover:text-green-600">
+              <a href="/contact" className="hover:text-green-600">
                 Contact
               </a>
             </li>
@@ -68,7 +68,7 @@ export default function Header() {
               <li className="relative" ref={menuRef}>
                 <button
                   onClick={() => setMenuOpen((prev) => !prev)}
-                  className="flex items-center space-x-2 hover:text-green-600"
+                  className="flex items-center space-x-2 hover:text-green-600 cursor-pointer"
                 >
                   <User />
                 </button>
@@ -76,9 +76,9 @@ export default function Header() {
                   <div className="absolute right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg p-2 px-6 z-50">
                     <button
                       onClick={handleLogout}
-                      className="flex items-center text-sm hover:text-red-500"
+                      className="flex items-center text-sm cursor-pointer hover:text-red-500"
                     >
-                      <LogOut className="w-4 h-4 mr-2" />
+                      <LogOut className="w-4 h-4 mr-2 cursor-pointer" />
                       Sign Out
                     </button>
                   </div>

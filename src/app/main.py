@@ -230,7 +230,7 @@ def register():
         # Insert new user
         cursor.execute(
             "INSERT INTO Users (username, email, password) VALUES (%s, %s, %s)",
-            (username, email, password)
+            (username, email, hashed_password)
         )
         conn.commit()
         
@@ -243,7 +243,7 @@ def register():
             "access_token",
             token,
             httponly=True,
-            secure=False,  # ❗ Must be False on localhost
+            secure=False,  # Must be False on localhost
             samesite="Lax",
             max_age=60 * 60 * 24,
             path="/"
