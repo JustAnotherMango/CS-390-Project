@@ -171,7 +171,7 @@ export default function PoliticiansList() {
             href={`/politicians/${encodeURIComponent(p.politician)}`}
           >
             <Card
-              className={`h-full p-4 cursor-pointer flex flex-row items-center space-x-4 ${
+              className={`h-full p-4 cursor-pointer flex flex-row items-start space-x-4 ${
                 p.party === "Democrat"
                   ? "bg-blue-800 text-white"
                   : p.party === "Republican"
