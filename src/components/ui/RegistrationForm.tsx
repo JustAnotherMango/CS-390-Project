@@ -48,8 +48,27 @@ export default function RegisterPage() {
       const data = await res.json();
   
       if (res.ok) {
-        setMessage(data.message || 'Registration successful!');
-        router.push('/politicians'); // success: redirect
+        // ✅ Now log in the user after successful registration
+        const loginRes = await fetch('http://localhost:5000/login', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.username,
+            password: formData.password,
+          }),
+        });
+  
+        const loginData = await loginRes.json();
+  
+        if (loginRes.ok) {
+          setMessage('Registration and login successful!');
+          window.location.href = '/politicians';
+        } else {
+          setMessage(loginData.message || 'Registered, but auto-login failed. Please log in manually.');
+        }
       } else {
         setMessage(data.message || 'Registration failed');
       }
@@ -71,7 +90,7 @@ export default function RegisterPage() {
             required
           />
           <input 
-            className="text-white border-b-2 border-white-2 w-8/12"
+            className="text-white border-b-2 border-white-2 w-8/12 pt-3"
             type="email"
             name="email"
             placeholder="Email"
@@ -98,11 +117,22 @@ export default function RegisterPage() {
             required
           />
           <span className="py-2"></span>
+
+          {message && (
+            <p
+              className={`text-sm mt-2 transition-opacity duration-300 ${
+                message.toLowerCase().includes('success') ? 'text-green-400' : 'text-red-400'
+              }`}
+            >
+              {message}
+            </p>
+          )}
+
           <p className="text-white cursor-pointer hover:text-green-600 pb-3 underline">Forgot Password</p>
-          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded">Register</button>
+          <button type="submit" className="text-white border-2 border-white-2 rounded-lg py-2 px-10 cursor-pointer bg-green-600 border-green-600 hover:text-green-600 hover:bg-gray-700">Register</button>
           <div className="flex pt-2">
-            <p className="text-white pr-1">Don't have an account?</p>
-            <p className="text-white cursor-pointer hover:text-green-600 pb-3 underline">Register</p>
+            <p className="text-white pr-1">Already have an account?</p>
+            <p className="text-white cursor-pointer hover:text-green-600 pb-3 underline">Login</p>
           </div>
         </form>
   );

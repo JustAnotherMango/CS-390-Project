@@ -33,7 +33,7 @@ export default function ContactUsPage() {
         <div className="max-w-2xl mx-auto p-6">
             <Card className="p-6 space-y-6 bg-gray-900 text-white">
                 <h2 className="text-2xl font-bold">Contact Us</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 justify-items-center">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
                         <input
@@ -74,8 +74,8 @@ export default function ContactUsPage() {
                         <button
                             type="submit"
                             disabled={status === "sending"}
-                            className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 transition-colors"
-                        >
+                            className="text-white border-2 border-white-2 rounded-lg py-2 px-10 cursor-pointer bg-green-600 border-green-600 hover:text-green-600 hover:bg-gray-700"
+                            >
                             {status === "sending" ? "Sending..." : "Send Message"}
                         </button>
                     </div>
