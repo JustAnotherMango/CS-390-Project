@@ -91,6 +91,13 @@ def get_politicians():
         p.chamber,
         p.state,
         p.image,
+        p.traded_issuer,
+        p.ticker,
+        p.published_date,
+        p.trade_date,
+        p.trade_type,
+        p.min_purchase_price,
+        p.max_purchase_price,
         c.confidence_score
       FROM politician_trades AS p
       LEFT JOIN politician_confidence AS c
@@ -152,7 +159,7 @@ def get_trades():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Trades")
+        cursor.execute("SELECT * FROM politician_trades")
         results = cursor.fetchall()
         
         # Convert DATE objects to strings for JSON serialization
