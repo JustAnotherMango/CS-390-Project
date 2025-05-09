@@ -233,7 +233,7 @@ def scrape_politician_page(url, max_pages=10, update_mode=False, cutoff_date=Non
                 "politician": name, "party": party, "chamber": chamber, "state": state,
                 "traded_issuer": traded_issuer, "ticker": ticker_raw,
                 "published_date": pub, "trade_date": td,
-                "gap_unit": None, "gap": gap, "trade_type": tt, "page": page,
+                 "gap": gap, "trade_type": tt, "page": page,
                 "min_purchase_price": mn, "max_purchase_price": mx, "image": img
             })
             valid += 1
@@ -256,8 +256,7 @@ def insert_trades_into_db(trades):
     INSERT INTO politician_trades (
       politician, party, chamber, state,
       traded_issuer, ticker,
-      published_date, trade_date,
-      gap_unit, gap, trade_type, page,
+      published_date, trade_date, gap, trade_type, page,
       image, min_purchase_price, max_purchase_price
     ) VALUES (
       %s, %s, %s, %s,
@@ -271,8 +270,7 @@ def insert_trades_into_db(trades):
         vals = (
             t["politician"], t["party"], t["chamber"], t["state"],
             t["traded_issuer"], t["ticker"],
-            t["published_date"], t["trade_date"],
-            t["gap_unit"], t["gap"], t["trade_type"], t["page"],
+            t["published_date"], t["trade_date"], t["gap"], t["trade_type"], t["page"],
             t["image"], t["min_purchase_price"], t["max_purchase_price"]
         )
         try:
