@@ -1,4 +1,3 @@
-# datascraper.py
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,9 +16,6 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 
-# -----------------------------------------------------------------------------
-# CONFIG & LOGGING
-# -----------------------------------------------------------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -31,9 +27,6 @@ db_config = {
 }
 DATE_FORMAT = "%d %b %Y"
 
-# -----------------------------------------------------------------------------
-# HELPERS
-# -----------------------------------------------------------------------------
 def safe_parse_date(s: str):
     """Parse a date string or return None."""
     try:
@@ -169,9 +162,6 @@ def calculate_roi_range(min_amt, max_amt, symbol, buy_dt, sell_dt):
         logger.error(f"ROI error for {symbol}: {e}")
         return None, None, None
 
-# -----------------------------------------------------------------------------
-# SCRAPING & INSERTION
-# -----------------------------------------------------------------------------
 def scrape_politician_page(url, max_pages=10, update_mode=False, cutoff_date=None):
     """Scrape trades from one politician's page."""
     opts = Options(); opts.add_argument("--headless")
@@ -245,33 +235,52 @@ def scrape_politician_page(url, max_pages=10, update_mode=False, cutoff_date=Non
     return trades
 
 def insert_trades_into_db(trades):
-    """Insert scraped trades into DB with a progress bar."""
-    try:
-        cnx = get_db_connection()
-    except:
-        return
-
+    cnx = get_db_connection()
     cursor = cnx.cursor()
     q = """
     INSERT INTO politician_trades (
-      politician, party, chamber, state,
-      traded_issuer, ticker,
-      published_date, trade_date, gap, trade_type, page,
-      image, min_purchase_price, max_purchase_price
+      politician,
+      traded_issuer,
+      ticker,
+      published_date,
+      trade_date,
+      gap,
+      trade_type,
+      page,
+      party,
+      chamber,
+      state,
+      min_purchase_price,
+      max_purchase_price,
+      min_roi,
+      max_roi,
+      avg_roi,
+      image,
+      confidence_score
     ) VALUES (
-      %s, %s, %s, %s,
-      %s, %s,
-      %s, %s,
-      %s, %s, %s, %s,
-      %s, %s, %s
+      %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
     )
     """
     for t in tqdm(trades, desc="Inserting trades"):
         vals = (
-            t["politician"], t["party"], t["chamber"], t["state"],
-            t["traded_issuer"], t["ticker"],
-            t["published_date"], t["trade_date"], t["gap"], t["trade_type"], t["page"],
-            t["image"], t["min_purchase_price"], t["max_purchase_price"]
+            t["politician"],
+            t["traded_issuer"],
+            t["ticker"],
+            t["published_date"],
+            t["trade_date"],
+            t["gap"],
+            t["trade_type"],
+            t["page"],
+            t["party"],
+            t["chamber"],
+            t["state"],
+            t["min_purchase_price"],
+            t["max_purchase_price"],
+            None,        
+            None,       
+            None,        
+            t["image"],
+            None        
         )
         try:
             cursor.execute(q, vals)
@@ -279,13 +288,10 @@ def insert_trades_into_db(trades):
         except Exception as e:
             logger.error(f"Insert error: {e}")
             cnx.rollback()
-
     cursor.close()
     cnx.close()
 
-# -----------------------------------------------------------------------------
-# ROI CALCULATIONS
-# -----------------------------------------------------------------------------
+
 def update_roi_by_pairs():
     """Compute & update ROI based on buy–sell pairs per ticker."""
     tickers = fetch_distinct_tickers_from_db()
@@ -385,9 +391,6 @@ def update_roi_for_all_trades():
     cu.close()
     cnx.close()
 
-# -----------------------------------------------------------------------------
-# HISTORICAL DATA POPULATION
-# -----------------------------------------------------------------------------
 def populate_historical_trades():
     """Fetch distinct tickers, pull bars from Alpaca, insert into historical_trades."""
     API_KEY    = os.getenv("APCA_API_KEY")    or "PK3JXYAJVNEAWAJ1X3I6"
@@ -443,9 +446,6 @@ def populate_historical_trades():
     cnx.close()
     logger.info("Historical trades populated successfully.")
 
-# -----------------------------------------------------------------------------
-# MAIN MENU
-# -----------------------------------------------------------------------------
 def run_operation():
     """Interactive menu for scraper operations."""
     print("\n1: Full Insert   2: Update Trades   3: Fetch Historical   "
