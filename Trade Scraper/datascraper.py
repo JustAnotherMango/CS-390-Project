@@ -399,12 +399,19 @@ def populate_historical_trades():
         raise ValueError("Missing Alpaca credentials in .env")
     client = StockHistoricalDataClient(API_KEY, API_SECRET)
 
-    tickers = fetch_distinct_tickers_from_db()
-    if not tickers:
-        logger.info("No tickers to fetch.")
+    raw_tickers = fetch_distinct_tickers_from_db()
+    # drop any crypto/$ tickers and empty strings
+    clean = [
+        adjust_ticker_for_alpaca(t).lstrip("$")
+        for t in raw_tickers
+        if t and not t.startswith("$")
+    ]
+    if not clean:
+        logger.info("No valid stock tickers to fetch.")
         return
 
-    symbols = sorted(adjust_ticker_for_alpaca(t) for t in tickers)
+    symbols = sorted(clean)
+
     logger.info(f"Fetching historical data for: {symbols}")
 
     req = StockBarsRequest(
