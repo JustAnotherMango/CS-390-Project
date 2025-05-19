@@ -7,7 +7,7 @@ import { useParams } from "next/navigation"
 type Trade = {
   id: number
   politician: string
-  image: string
+  image: string | null
   traded_issuer: string
   ticker: string
   trade_type: string
@@ -33,44 +33,36 @@ export default function PoliticianDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  // filter inputs
+  // filters & sort
   const [searchIssuer, setSearchIssuer] = useState("")
   const [filterType, setFilterType] = useState("All")
   const [filterTicker, setFilterTicker] = useState("All")
-  // sort input
   const [sortOption, setSortOption] = useState("dateDesc")
 
-  // helper: format numbers to k/m
-  const formatAmount = (val: number | null): string => {
-    if (val == null) return "N/A"
-    if (val >= 1_000_000) {
-      const m = val / 1_000_000
-      return (Number.isInteger(m) ? m : +m.toFixed(1)) + "m"
-    }
-    if (val >= 1_000) {
-      const k = val / 1_000
-      return (Number.isInteger(k) ? k : +k.toFixed(1)) + "k"
-    }
-    return val.toString()
-  }
-
-  // fetch + normalize data
   useEffect(() => {
     if (!name) return
-    fetch("http://localhost:5000/Politicians")
-      .then((r) => {
-        if (!r.ok) throw new Error("Couldn’t load trades")
-        return r.json()
+    fetch("http://localhost:5000/Trades")
+      .then((res) => {
+        if (!res.ok) throw new Error("Couldn’t load trades")
+        return res.json()
       })
-      .then((json) => {
-        const all: Trade[] = (json.trades as any[])
-          .map((t) => ({
-            ...t,
-            min_purchase_price: t.min_purchase_price ? Number(t.min_purchase_price) : null,
-            max_purchase_price: t.max_purchase_price ? Number(t.max_purchase_price) : null,
-            avg_roi: t.avg_roi != null ? Number(t.avg_roi) : null,
-          }))
+      .then((json: any[]) => {
+        const all = (json as any[])
           .filter((t) => t.politician === name)
+          .map((t) => ({
+            id:                   t.id,
+            politician:          t.politician,
+            image:               t.image ?? null,
+            traded_issuer:       t.traded_issuer || "",
+            ticker:              t.ticker || "",
+            trade_type:          t.trade_type || "",
+            min_purchase_price:  t.min_purchase_price != null ? Number(t.min_purchase_price) : null,
+            max_purchase_price:  t.max_purchase_price != null ? Number(t.max_purchase_price) : null,
+            trade_date:          t.trade_date,
+            published_date:      t.published_date,
+            gap:                 t.gap || "",
+            avg_roi:             t.avg_roi != null ? Number(t.avg_roi) : null,
+          }))
         setTrades(all)
       })
       .catch((e) => setError(e.message))
@@ -79,15 +71,15 @@ export default function PoliticianDetail() {
 
   // derive filter options
   const types = useMemo(
-    () => ["All", ...Array.from(new Set(trades.map((t) => t.trade_type)))],
+    () => ["All", ...new Set(trades.map((t) => t.trade_type))],
     [trades]
   )
   const tickers = useMemo(
-    () => ["All", ...Array.from(new Set(trades.map((t) => t.ticker)))],
+    () => ["All", ...new Set(trades.map((t) => t.ticker))],
     [trades]
   )
 
-  // apply filters + search
+  // apply filters
   const filtered = useMemo(
     () =>
       trades.filter((t) => {
@@ -95,10 +87,7 @@ export default function PoliticianDetail() {
         if (filterTicker !== "All" && t.ticker !== filterTicker) return false
         if (
           searchIssuer &&
-          !t.traded_issuer
-            .split("\n")[0]
-            .toLowerCase()
-            .includes(searchIssuer.toLowerCase())
+          !t.traded_issuer.toLowerCase().includes(searchIssuer.toLowerCase())
         )
           return false
         return true
@@ -106,7 +95,7 @@ export default function PoliticianDetail() {
     [trades, filterType, filterTicker, searchIssuer]
   )
 
-  // sort filtered list
+  // apply sorting
   const sortedTrades = useMemo(() => {
     const arr = [...filtered]
     switch (sortOption) {
@@ -121,48 +110,31 @@ export default function PoliticianDetail() {
             new Date(b.trade_date).getTime() - new Date(a.trade_date).getTime()
         )
       case "sizeAsc":
-        return arr.sort((a, b) => {
-          const sa = ((a.min_purchase_price ?? 0) + (a.max_purchase_price ?? 0)) / 2
-          const sb = ((b.min_purchase_price ?? 0) + (b.max_purchase_price ?? 0)) / 2
-          return sa - sb
-        })
+        return arr.sort(
+          (a, b) =>
+            ((a.min_purchase_price ?? 0) + (a.max_purchase_price ?? 0)) / 2 -
+            ((b.min_purchase_price ?? 0) + (b.max_purchase_price ?? 0)) / 2
+        )
       case "sizeDesc":
-        return arr.sort((a, b) => {
-          const sa = ((a.min_purchase_price ?? 0) + (a.max_purchase_price ?? 0)) / 2
-          const sb = ((b.min_purchase_price ?? 0) + (b.max_purchase_price ?? 0)) / 2
-          return sb - sa
-        })
+        return arr.sort(
+          (a, b) =>
+            ((b.min_purchase_price ?? 0) + (b.max_purchase_price ?? 0)) / 2 -
+            ((a.min_purchase_price ?? 0) + (a.max_purchase_price ?? 0)) / 2
+        )
       default:
         return arr
     }
   }, [filtered, sortOption])
 
   if (loading) return <p className="text-center text-white mt-8">Loading…</p>
-  if (error) return <p className="text-center text-red-500 mt-8">{error}</p>
+  if (error)   return <p className="text-center text-red-500 mt-8">{error}</p>
   if (!trades.length)
-    return (
-      <p className="text-center text-white mt-8">
-        No trades found for {name}
-      </p>
-    )
+    return <p className="text-center text-white mt-8">No trades found for {name}</p>
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header + image */}
-      <div className="flex items-center space-x-4">
-        {trades[0]?.image && (
-          <img
-            src={trades[0].image}
-            alt={name}
-            className="w-20 h-20 rounded-full object-cover"
-          />
-        )}
-        <h1 className="text-3xl font-bold text-white">{name}’s Trades</h1>
-      </div>
-
-      {/* Filters + Sort */}
+      {/* Filters & Sort */}
       <div className="grid grid-cols-7 gap-4 mb-4">
-        {/* Search issuer (now 3/7 width) */}
         <div className="col-span-3">
           <input
             type="text"
@@ -172,7 +144,6 @@ export default function PoliticianDetail() {
             className="w-full p-2 rounded bg-gray-800 text-white placeholder-gray-400"
           />
         </div>
-        {/* Trade type */}
         <div>
           <select
             value={filterType}
@@ -180,13 +151,10 @@ export default function PoliticianDetail() {
             className="w-full p-2 rounded bg-gray-800 text-white"
           >
             {types.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
         </div>
-        {/* Ticker */}
         <div>
           <select
             value={filterTicker}
@@ -194,13 +162,10 @@ export default function PoliticianDetail() {
             className="w-full p-2 rounded bg-gray-800 text-white"
           >
             {tickers.map((tk) => (
-              <option key={tk} value={tk}>
-                {tk}
-              </option>
+              <option key={tk} value={tk}>{tk}</option>
             ))}
           </select>
         </div>
-        {/* Sort options (2/7 width) */}
         <div className="col-span-2">
           <select
             value={sortOption}
@@ -215,7 +180,7 @@ export default function PoliticianDetail() {
         </div>
       </div>
 
-      {/* Column Headers */}
+      {/* Trades Table */}
       <div className="bg-gray-700 text-gray-300 p-2 rounded-lg grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 font-semibold">
         <div>Issuer</div>
         <div>Ticker</div>
@@ -225,23 +190,18 @@ export default function PoliticianDetail() {
         <div>Published</div>
         <div>Avg ROI</div>
       </div>
-
-      {/* Trades list */}
       <div className="space-y-4">
         {sortedTrades.map((t) => (
           <div
             key={t.id}
-            className="bg-gray-800 text-white p-4 rounded-lg grid 
-                       grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-center"
+            className="bg-gray-800 text-white p-4 rounded-lg grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-center"
           >
-            <div className="font-medium">
-              {t.traded_issuer.split("\n")[0]}
-            </div>
+            <div className="font-medium">{t.traded_issuer}</div>
             <div>{t.ticker}</div>
             <div>{t.trade_type}</div>
             <div>
-              {formatAmount(t.min_purchase_price)} –{" "}
-              {formatAmount(t.max_purchase_price)}
+              {(t.min_purchase_price ?? 0).toLocaleString()} –{" "}
+              {(t.max_purchase_price ?? 0).toLocaleString()}
             </div>
             <div>{t.trade_date}</div>
             <div>{t.published_date}</div>
